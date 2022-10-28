@@ -1,0 +1,318 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": {
+      "$ref": "./intro-v1.md"
+    },
+    "version": "1.0.0",
+    "title": "Find a Vacant Room API",
+    "contact": {
+      "email": "alex@palmes.dev",
+      "name": "Alex",
+      "url": "https://palmes.dev"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://find-a-room.palmes.dev/api/v1"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Event": {
+        "type": "object",
+        "description": "Event (class, meeting, etc...)",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start of event"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of event"
+          }
+        }
+      },
+      "Room": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Full room name"
+          },
+          "code": {
+            "type": "string",
+            "description": "Short room name"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "description": "Room capacity, null if unknown"
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Current availability state"
+          },
+          "currentEvents": {
+            "type": "array",
+            "description": "On-going events",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "nextEvent": {
+            "type": "object",
+            "description": "Next scheduled event and it's delta",
+            "properties": {
+              "delta": {
+                "type": "integer",
+                "format": "int64",
+                "nullable": true,
+                "description": "Second until event, null if no event"
+              },
+              "event": {
+                "$ref": "#/components/schemas/Event"
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message":{
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Format": {
+        "description": "Bad Request. Created by bad argument syntax / formatting.",
+        "content": {
+          "application/json":{
+            "schema":{
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/find": {
+      "get": {
+        "summary": "Find one Vacant Room",
+        "description": "Filters available rooms, sorts them by longest available and returns one from the top results. Pretty much the whole point of the main website itself.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Search time as UNIX timestamp, results will be relative to this if specified.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "floor",
+            "in": "query",
+            "description": "Floor number filter",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
+            }
+          },
+          {
+            "name": "capacity",
+            "in": "query",
+            "description": "Minimum capacity filter",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "delta",
+            "in": "query",
+            "description": "Minimum available time (seconds) filter",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Room"
+                    },
+                    {
+                      "nullable": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Format"
+          }
+        },
+        "tags": [
+          "Room Endpoints"
+        ]
+      }
+    },
+    "/list": {
+      "get": {
+        "summary": "List rooms",
+        "description": "List all rooms, filters can be applied",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Search time as UNIX timestamp, results will be relative to this if specified.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "available",
+            "in": "query",
+            "description": "Availability filter",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "floor",
+            "in": "query",
+            "description": "Floor number filter",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
+            }
+          },
+          {
+            "name": "capacity",
+            "in": "query",
+            "description": "Minimum capacity filter",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "delta",
+            "in": "query",
+            "description": "Minimum available time (seconds) filter",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Room"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Format"
+          }
+        },
+        "tags": [
+          "Room Endpoints"
+        ]
+      }
+    },
+    "/get/{room}": {
+      "get": {
+        "summary": "Get one specific room",
+        "description": "Get one room by it's short name, with its included 10 next scheduled events",
+        "parameters": [
+          {
+            "name": "room",
+            "in": "path",
+            "required": true,
+            "description": "Short room name (eg: \"E101\")",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Search time as UNIX timestamp, results will be relative to this if specified.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Room"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "nextEvents": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Event"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Format"
+          }
+        },
+        "tags": [
+          "Room Endpoints"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Room Endpoints",
+      "description": "These 3 endpoints allow you to query room data from the API freely. You can search, list and get the different rooms and their events. Some basic filtering is supported through URL query params."
+    }
+  ]
+}

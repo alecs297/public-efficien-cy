@@ -1,0 +1,24 @@
+
+{
+    "pathInMiddlePanel": true,
+    "disableSearch": true,
+    "hideDownloadButton": true,
+    "hideSecuritySection": true,
+    "untrustedDefinition": true,
+    "theme": {
+      "typography": {
+        "fontSize": "16px",
+        "optimizeSpeed": true,
+        "smoothing": "antialiased",
+        "headings": {
+          "fontWeight": "bold",
+          "lineHeight": "1em"
+        },
+        "links": {
+          "color": "rgba(246, 20, 63, 1)",
+          "visited": "rgba(246, 20, 63, 1)",
+          "hover": "#fa768f"
+        }
+      }
+    }
+  }

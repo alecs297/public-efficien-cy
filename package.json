@@ -1,0 +1,32 @@
+{
+  "name": "efficien-cy",
+  "version": "1.0.0",
+  "description": "Find available classrooms",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "css": "npx tailwindcss -i ./html/input.css -o ./css/clean.css",
+    "csswatch": "npx tailwindcss -i ./html/input.css -o ./css/clean.css --watch",
+    "build-doc": "cd documentation && npx redoc-cli build v1.json -o v1.html --options=redoc.json",
+    "prestart": "npm run css && npm run build-doc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alecs297/public-efficien-cy.git"
+  },
+  "author": "Alex Moldovan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alecs297/public-efficien-cy/issues"
+  },
+  "homepage": "https://github.com/alecs297/public-efficien-cy#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "koa": "^2.13.4",
+    "koa-router": "^12.0.0",
+    "node-ical": "^0.15.1",
+    "redoc-cli": "^0.13.20",
+    "tailwindcss": "^3.1.8"
+  },
+  "type": "module"
+}
